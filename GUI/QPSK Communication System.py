@@ -2,6 +2,10 @@ from tkinter import *
 from tkinter import font
 from tkinter import messagebox
 from tkinter import ttk
+
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
 import math
 import cmath
 import numpy as np 
@@ -97,6 +101,11 @@ class guiLayout:
         self.tasks = pd.read_csv(os.path.dirname(os.path.realpath(__file__)) + "\\taskDescriptions.csv")
         pd.set_option('display.max_colwidth', -1)
         self.taskDescriptionLabel.pack(side = TOP, expand = False, fill = 'y')
+        #----------Graph----------
+        #fig = Figure(figsize=(5,5), dpi = 100)
+        #canvas = FigureCanvasTkAgg(fig, self)
+        #canvas.show()
+        #canvas.get_tk_widget().pack(side = BOTTOM, fill = BOTH, expand = True)
 
         #----------Setup----------
         self.task1Function()
@@ -159,6 +168,8 @@ class guiLayout:
         self.taskDescriptionLabel.config(text = str(self.tasks['Descriptions'].iloc[0]))
         task1 = QPSK()
         task1.run()
+        self.setPlot(task1.symbols)
+
     def task2Function(self):
         self.diagramCanvas.delete("all")
         self.diagramCanvas = self.diagramNoise(self.diagramCanvas)
@@ -203,7 +214,18 @@ class guiLayout:
         for button in self.buttonList:
             button.config(font = normalFont)
         buttonBold.config(font = boldFont)
- 
+    
+    def setPlot(self, symbols):
+        fig = Figure(figsize=(2,2), dpi = 100)
+        plot = fig.add_subplot(111)
+        plot.plot(symbols[0], symbols[1])
+
+        graphCanvas = FigureCanvasTkAgg(fig, master = self.outputFrame)
+        graphCanvas.draw()
+        graphCanvas.get_tk_widget().grid(column = 0, row = 0)
+        testlab = Label(self.outputFrame, text = "hellow there ")
+        testlab.grid(column = 1, row = 0)
+
     #Canvas Functions
     def diagramSpreadJammerNoise(self, system):
         self.system = system
@@ -428,9 +450,11 @@ class QPSK:
     offset = 24
     attenuation = 1
 
+    
+
     def __init__(self, spreadSpectrum=False, SNRin=False, jammer=False):
         #If instantiated with no values it is assumed to be operating in the presence of no noise and no jammer
-
+        self.symbols = [[0],[0]]
         self.SNRin = SNRin
         self.spreadSpectrum = spreadSpectrum
         self.jammer = jammer
